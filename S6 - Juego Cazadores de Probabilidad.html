@@ -1,0 +1,1277 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cazadores de Probabilidad</title>
+<meta name="description" content="Juego interactivo de probabilidades para la Sesión 3: espacio muestral, operaciones entre eventos con diagrama de Venn-Euler, definición clásica, principio de adición y probabilidad condicional, en cuatro niveles con puntaje, rachas y medallas.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@400;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+:root{
+  --fondo:#F3F0FF; --fondo2:#FFF7ED;
+  --carta:#FFFFFF; --carta2:#FAF9FF;
+  --tinta:#2A1B4A; --tinta2:#5B4B7D; --tinta3:#8B7FA8;
+  --linea:#E4DEF7; --linea2:#CFC4EC;
+  --n1:#7C3AED; --n1s:#EDE7FE;
+  --n2:#0D9488; --n2s:#D6F3EF;
+  --n3:#D97706; --n3s:#FDECD3;
+  --n4:#DB2777; --n4s:#FCE0EE;
+  --ok:#15803D; --oks:#DCFCE7;
+  --mal:#DC2626; --mals:#FEE2E2;
+  --oro:#CA8A04; --oros:#FEF3C7;
+  --sombra:0 2px 4px rgba(42,27,74,.06), 0 12px 28px -10px rgba(42,27,74,.25);
+  --sombra2:0 4px 0 rgba(42,27,74,.14);
+  --acento:var(--n1); --acentos:var(--n1s);
+}
+*{box-sizing:border-box}
+[hidden]{display:none !important}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; color:var(--tinta);
+  background:var(--fondo);
+  background-image:radial-gradient(circle at 12% 8%, #E9E0FF 0%, transparent 45%),
+                   radial-gradient(circle at 88% 4%, #FFE8CF 0%, transparent 40%),
+                   radial-gradient(circle at 50% 100%, #D9F5F0 0%, transparent 45%);
+  background-attachment:fixed;
+  font-family:"Nunito","Segoe UI",system-ui,sans-serif; font-size:17px; line-height:1.55;
+}
+h1,h2,h3,h4{font-family:"Baloo 2","Nunito",system-ui,sans-serif;font-weight:700;margin:0;line-height:1.12;text-wrap:balance}
+p{margin:0}
+button{font:inherit;cursor:pointer;font-family:"Baloo 2","Nunito",sans-serif}
+.mono{font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums}
+:focus-visible{outline:3px solid var(--acento);outline-offset:3px}
+
+.wrap{max-width:880px;margin:0 auto;padding:0 18px 80px}
+
+/* ---------- barra superior ---------- */
+.hud{position:sticky;top:0;z-index:40;background:rgba(255,255,255,.86);backdrop-filter:blur(10px);
+  border-bottom:2px solid var(--linea)}
+.hud-in{max-width:880px;margin:0 auto;padding:9px 18px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.marca{font-family:"Baloo 2",sans-serif;font-weight:700;font-size:.95rem;color:var(--tinta2);margin-right:auto;
+  display:flex;align-items:center;gap:8px}
+.marca .chispa{width:26px;height:26px;border-radius:9px;background:var(--acento);color:#fff;display:grid;place-items:center;
+  font-size:.85rem;transition:background .3s}
+.pastilla{font-family:"Baloo 2",sans-serif;font-weight:700;font-size:.92rem;padding:4px 12px;border-radius:999px;
+  background:var(--acentos);color:var(--acento);display:inline-flex;align-items:center;gap:6px;transition:background .3s,color .3s}
+.pastilla.oro{background:var(--oros);color:var(--oro)}
+.reloj{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;font-weight:600;font-size:1.05rem;
+  padding:4px 12px;border-radius:12px;background:var(--acentos);color:var(--acento);
+  transition:background .3s,color .3s,transform .2s}
+.reloj.aviso{background:var(--n3s);color:var(--n3)}
+.reloj.apuro{background:var(--mals);color:var(--mal);animation:latir 1s ease-in-out infinite}
+@keyframes latir{0%,100%{transform:scale(1)}50%{transform:scale(1.09)}}
+@media (prefers-reduced-motion:reduce){.reloj.apuro{animation:none}}
+.cronobar{height:6px;background:var(--linea)}
+.cronobar > i{display:block;height:100%;background:var(--acento);width:100%;border-radius:0 3px 3px 0;
+  transition:width .3s linear,background .3s}
+.cronobar > i.aviso{background:var(--n3)}
+.cronobar > i.apuro{background:var(--mal)}
+.banda{background:var(--mals);color:var(--mal);border-bottom:2px solid var(--mal);
+  font-family:"Baloo 2",sans-serif;font-weight:700;font-size:.92rem;text-align:center;padding:7px 16px}
+
+/* ---------- portada ---------- */
+.portada{padding:40px 0 20px;text-align:center}
+.portada h1{font-size:clamp(2.2rem,7vw,3.6rem);margin:10px 0 6px}
+.portada h1 em{font-style:normal;background:linear-gradient(100deg,var(--n1),var(--n2) 45%,var(--n3) 72%,var(--n4));
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+.lema{color:var(--tinta2);font-size:1.06rem;max-width:60ch;margin:0 auto}
+.eti{font-family:"IBM Plex Mono",monospace;font-size:.72rem;letter-spacing:.18em;text-transform:uppercase;color:var(--tinta3)}
+
+.niveles{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));margin:26px 0}
+.nv{background:var(--carta);border:2px solid var(--linea);border-radius:18px;padding:16px 14px;text-align:left;
+  box-shadow:var(--sombra);position:relative;overflow:hidden}
+.nv::before{content:"";position:absolute;inset:0 auto 0 0;width:6px;background:var(--c)}
+.nv .num{font-family:"IBM Plex Mono",monospace;font-size:.7rem;letter-spacing:.14em;color:var(--c);font-weight:600}
+.nv h3{font-size:1.08rem;margin:3px 0 5px;color:var(--c)}
+.nv p{font-size:.88rem;color:var(--tinta2)}
+
+.tarjeta{background:var(--carta);border:2px solid var(--linea);border-radius:20px;padding:22px;box-shadow:var(--sombra)}
+.form{display:grid;gap:12px;grid-template-columns:1fr 1fr;margin-top:6px}
+.campo{display:grid;gap:5px}
+.campo label{font-family:"IBM Plex Mono",monospace;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--tinta3)}
+input[type=text]{background:var(--carta2);border:2px solid var(--linea2);border-radius:12px;color:var(--tinta);
+  padding:11px 13px;font-size:1rem;width:100%;font-family:inherit}
+input::placeholder{color:var(--tinta3)}
+.full{grid-column:1/-1}
+input[type=text].bad{border-color:var(--mal);background:var(--mals)}
+.err{color:var(--mal);font-size:.9rem;font-weight:700;min-height:1.2em;margin:2px 0 0}
+.reglas{margin:10px 0 0;padding-left:20px;color:var(--tinta2);font-size:.95rem}
+.reglas li{margin:4px 0}
+.reglas b{color:var(--tinta)}
+.titsec{margin:30px 0 6px;font-size:1.3rem}
+
+.btn{border:none;background:var(--acento);color:#fff;font-weight:700;font-size:1.02rem;padding:13px 26px;
+  border-radius:14px;box-shadow:var(--sombra2);transition:transform .08s,filter .15s}
+.btn:hover{filter:brightness(1.08)}
+.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(42,27,74,.14)}
+.btn[disabled]{opacity:.45;cursor:not-allowed;box-shadow:none}
+.btn.grande{font-size:1.2rem;padding:16px 40px;border-radius:16px}
+.btn.fantasma{background:var(--carta);color:var(--acento);border:2px solid var(--linea2);box-shadow:none}
+.btn.fantasma:hover{border-color:var(--acento);background:var(--acentos)}
+
+/* ---------- ronda ---------- */
+.cabecera{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:20px 0 12px}
+.chapa{font-family:"Baloo 2",sans-serif;font-weight:700;font-size:.8rem;padding:4px 12px;border-radius:999px;
+  background:var(--acento);color:#fff}
+.paso{font-family:"IBM Plex Mono",monospace;font-size:.78rem;color:var(--tinta3)}
+.consigna{background:var(--carta);border:2px solid var(--linea);border-left:7px solid var(--acento);
+  border-radius:16px;padding:16px 18px;box-shadow:var(--sombra)}
+.consigna .ctx{font-size:.92rem;color:var(--tinta2);margin-bottom:7px}
+.consigna h2{font-size:1.22rem}
+.consigna .obj{display:inline-block;margin-top:8px;background:var(--acentos);color:var(--acento);
+  font-family:"IBM Plex Mono",monospace;font-weight:600;font-size:1.02rem;padding:5px 14px;border-radius:10px}
+
+.zona{margin-top:16px;background:var(--carta);border:2px solid var(--linea);border-radius:20px;padding:18px;
+  box-shadow:var(--sombra)}
+.acciones{margin-top:16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.pista{font-size:.86rem;color:var(--tinta3)}
+
+/* ---------- venn ---------- */
+.vennbox svg{width:100%;height:auto;display:block;max-width:560px;margin:0 auto;touch-action:manipulation}
+.reg{fill:#EFEAFB;stroke:none;cursor:pointer;transition:fill .18s}
+.reg:hover{fill:#DCD2F7}
+.reg.on{fill:var(--n1);fill-opacity:.62}
+.vn-borde{fill:none;stroke:var(--linea2);stroke-width:2.5;pointer-events:none}
+.vn-circ{fill:none;stroke:var(--tinta2);stroke-width:2.5;pointer-events:none}
+.vn-tex{font-family:"Baloo 2",sans-serif;font-weight:700;font-size:19px;fill:var(--tinta);pointer-events:none}
+.vn-min{font-family:"IBM Plex Mono",monospace;font-size:12px;fill:var(--tinta3);pointer-events:none;text-anchor:middle}
+.vn-om{font-family:"IBM Plex Mono",monospace;font-size:15px;fill:var(--tinta3);pointer-events:none}
+
+/* ---------- rejilla ---------- */
+.rej{display:grid;grid-template-columns:auto repeat(6,1fr);gap:4px;max-width:520px;margin:0 auto}
+.rej .enc{font-family:"IBM Plex Mono",monospace;font-size:.76rem;color:var(--tinta3);display:grid;place-items:center}
+.cas{aspect-ratio:1;border:2px solid var(--linea2);background:var(--carta2);border-radius:10px;
+  font-family:"IBM Plex Mono",monospace;font-size:.82rem;font-weight:600;color:var(--tinta2);
+  display:grid;place-items:center;transition:transform .1s,background .15s,border-color .15s;padding:0}
+.cas:hover{border-color:var(--n2);background:var(--n2s)}
+.cas.on{background:var(--n2);border-color:var(--n2);color:#fff;transform:scale(.94)}
+.cas.bien{background:var(--oks);border-color:var(--ok);color:var(--ok)}
+.cas.falla{background:var(--mals);border-color:var(--mal);color:var(--mal)}
+.cas[disabled]{cursor:default}
+.contador{text-align:center;margin-top:12px;font-family:"IBM Plex Mono",monospace;font-size:.9rem;color:var(--tinta2)}
+.contador b{color:var(--n2);font-size:1.1rem}
+
+/* ---------- tabla ---------- */
+.tabwrap{overflow-x:auto}
+.tab{width:100%;border-collapse:separate;border-spacing:3px;font-family:"IBM Plex Mono",monospace;
+  font-size:.86rem;font-variant-numeric:tabular-nums}
+.tab th,.tab td{padding:8px 9px;text-align:center;border-radius:9px;background:var(--carta2);transition:background .25s,color .25s}
+.tab thead th{background:var(--tinta2);color:#fff;font-weight:600;font-size:.78rem}
+.tab thead th.esq{background:var(--linea);color:var(--tinta2);text-align:left}
+.tab tbody th{background:var(--linea);color:var(--tinta);text-align:left;font-weight:700;font-size:.8rem;white-space:nowrap}
+.tab .tot{background:var(--linea);font-weight:700}
+.tab td.mk{background:var(--n3);color:#fff;font-weight:700}
+.tab td.mk2{background:var(--n3s);color:var(--n3);font-weight:700;box-shadow:inset 0 0 0 2px var(--n3)}
+
+/* ---------- opciones ---------- */
+.ops{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin-top:16px}
+.op{border:2px solid var(--linea2);background:var(--carta2);border-radius:14px;padding:14px 12px;
+  font-family:"IBM Plex Mono",monospace;font-size:1.05rem;font-weight:600;color:var(--tinta);
+  transition:transform .1s,background .15s,border-color .15s;box-shadow:var(--sombra2)}
+.op:hover:not([disabled]){border-color:var(--acento);background:var(--acentos);transform:translateY(-2px)}
+.op:active:not([disabled]){transform:translateY(1px)}
+.op.bien{background:var(--oks);border-color:var(--ok);color:var(--ok)}
+.op.falla{background:var(--mals);border-color:var(--mal);color:var(--mal)}
+.op[disabled]{cursor:default;box-shadow:none}
+.vf{display:grid;gap:14px;grid-template-columns:1fr 1fr;margin-top:20px;max-width:460px;margin-inline:auto}
+.vf button{border:none;border-radius:18px;padding:24px 12px;font-size:1.5rem;font-weight:700;color:#fff;
+  box-shadow:var(--sombra2);transition:transform .1s,filter .15s}
+.vf .si{background:var(--ok)} .vf .no{background:var(--mal)}
+.vf button:hover:not([disabled]){filter:brightness(1.1)}
+.vf button:active:not([disabled]){transform:translateY(2px)}
+.vf button[disabled]{opacity:.5;box-shadow:none;cursor:default}
+.frase{font-size:1.25rem;font-weight:700;text-align:center;padding:24px 16px;background:var(--carta2);
+  border:2px dashed var(--linea2);border-radius:16px;font-family:"Baloo 2",sans-serif}
+
+/* ---------- veredicto ---------- */
+.veredicto{margin-top:16px;border-radius:16px;padding:16px 18px;display:none;animation:entra .28s cubic-bezier(.2,.9,.3,1)}
+.veredicto.ver{display:block}
+.veredicto.si{background:var(--oks);border:2px solid var(--ok)}
+.veredicto.no{background:var(--mals);border:2px solid var(--mal)}
+.veredicto b{font-family:"Baloo 2",sans-serif;font-size:1.1rem;display:block;margin-bottom:3px}
+.veredicto.si b{color:var(--ok)} .veredicto.no b{color:var(--mal)}
+.veredicto p{font-size:.95rem;color:var(--tinta2)}
+.veredicto p.juego{margin-top:8px;font-family:"IBM Plex Mono",monospace;font-size:.82rem;color:var(--tinta3)}
+@keyframes entra{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.veredicto{animation:none}}
+
+/* los avisos flotantes suben desde abajo para no taparle el enunciado al alumno */
+#flotante{position:fixed;left:0;right:0;bottom:6%;z-index:60;pointer-events:none;display:grid;justify-items:center;gap:6px}
+.puntosflot{font-family:"Baloo 2",sans-serif;font-weight:700;font-size:2.2rem;color:var(--ok);
+  background:rgba(255,255,255,.92);border-radius:999px;padding:6px 26px;
+  box-shadow:0 6px 24px -8px rgba(42,27,74,.45);animation:sube 1.15s ease-out forwards}
+@keyframes sube{0%{opacity:0;transform:translateY(18px) scale(.75)}
+  20%{opacity:1;transform:translateY(0) scale(1.06)}
+  75%{opacity:1;transform:translateY(-10px) scale(1)}
+  100%{opacity:0;transform:translateY(-34px) scale(1)}}
+@media (prefers-reduced-motion:reduce){.puntosflot{animation:sube 1.15s linear forwards}}
+
+/* ---------- transición de nivel ---------- */
+.entrenivel{text-align:center;padding:44px 20px}
+.entrenivel .globo{width:96px;height:96px;border-radius:30px;background:var(--acento);color:#fff;
+  display:grid;place-items:center;font-family:"Baloo 2",sans-serif;font-size:2.4rem;font-weight:700;
+  margin:0 auto 18px;box-shadow:var(--sombra)}
+.entrenivel h2{font-size:clamp(1.6rem,5vw,2.3rem);margin-bottom:8px}
+.entrenivel .lema{margin-bottom:6px}
+.aprendido{margin:22px auto 0;max-width:520px;background:var(--carta);border:2px solid var(--linea);
+  border-radius:16px;padding:16px 18px;text-align:left;box-shadow:var(--sombra)}
+.aprendido b{font-family:"Baloo 2",sans-serif;color:var(--acento)}
+.aprendido ul{margin:8px 0 0;padding-left:20px;font-size:.93rem;color:var(--tinta2)}
+.aprendido li{margin:3px 0}
+
+/* ---------- final ---------- */
+.final{text-align:center;padding:34px 20px 10px}
+.nombre{font-size:clamp(1.4rem,4.6vw,2rem);margin:10px 0 4px}
+.notaza{display:flex;align-items:baseline;justify-content:center;gap:10px;margin-top:6px}
+.notaza span{font-family:"Baloo 2",sans-serif;font-size:clamp(4rem,16vw,6.4rem);font-weight:700;line-height:1;
+  color:var(--tinta)}
+.notaza span.bien{color:var(--ok)} .notaza span.medio{color:var(--n3)} .notaza span.bajo{color:var(--mal)}
+.notaza i{font-style:normal;font-family:"Baloo 2",sans-serif;font-size:clamp(1.3rem,4vw,1.9rem);
+  font-weight:700;color:var(--tinta3)}
+.minidatos{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));margin-top:24px;text-align:center}
+.minidatos div{background:var(--carta);border:2px solid var(--linea);border-radius:14px;padding:11px 8px}
+.minidatos b{display:block;font-family:"Baloo 2",sans-serif;font-size:1.15rem;line-height:1.2}
+.minidatos span{font-size:.74rem;color:var(--tinta3);font-family:"IBM Plex Mono",monospace}
+.rango{display:inline-block;margin-top:10px;padding:7px 20px;border-radius:999px;font-family:"Baloo 2",sans-serif;
+  font-weight:700;font-size:1.05rem;background:var(--acentos);color:var(--acento)}
+.medallas{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));margin-top:24px}
+.medalla{background:var(--carta);border:2px solid var(--linea);border-radius:16px;padding:14px;text-align:center;
+  opacity:.45;filter:grayscale(1);transition:opacity .3s,filter .3s}
+.medalla.gana{opacity:1;filter:none;border-color:var(--oro);box-shadow:var(--sombra)}
+.medalla .ico{font-size:2rem;line-height:1}
+.medalla b{display:block;font-family:"Baloo 2",sans-serif;font-size:.95rem;margin-top:4px}
+.medalla span{font-size:.8rem;color:var(--tinta3)}
+.resumen{margin-top:24px;display:grid;gap:10px}
+.rline{display:flex;align-items:center;gap:12px;background:var(--carta);border:2px solid var(--linea);
+  border-radius:14px;padding:11px 14px}
+.rline .pt{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;color:#fff;font-weight:700;
+  font-family:"Baloo 2",sans-serif;flex:none}
+.rline .tx{flex:1;text-align:left}
+.rline .tx b{display:block;font-family:"Baloo 2",sans-serif;font-size:.97rem}
+.rline .tx span{font-size:.84rem;color:var(--tinta3)}
+.rline .mk{font-family:"IBM Plex Mono",monospace;font-weight:600;font-size:.95rem}
+.constancia{margin-top:30px;background:var(--carta);border:3px double var(--linea2);border-radius:20px;
+  padding:26px 24px;text-align:center;box-shadow:var(--sombra)}
+.constancia h3{font-size:1.5rem;margin:8px 0 10px;color:var(--acento)}
+.constancia p{color:var(--tinta2);font-size:.95rem;max-width:58ch;margin:0 auto}
+.constancia .notafinal{margin:20px auto 0;max-width:300px;background:var(--acentos);border:2px solid var(--acento);
+  border-radius:16px;padding:12px 16px}
+.constancia .notafinal span{display:block;font-family:"IBM Plex Mono",monospace;font-size:.72rem;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--acento)}
+.constancia .notafinal b{font-family:"Baloo 2",sans-serif;font-size:2.2rem;line-height:1.1;color:var(--acento)}
+.constancia .datos{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));margin-top:20px}
+.constancia .datos div{background:var(--carta2);border:2px solid var(--linea);border-radius:14px;padding:11px 8px}
+.constancia .datos b{display:block;font-family:"Baloo 2",sans-serif;font-size:1.1rem;line-height:1.2}
+.constancia .datos span{font-size:.74rem;color:var(--tinta3);font-family:"IBM Plex Mono",monospace}
+.constancia .cod{margin-top:18px;font-family:"IBM Plex Mono",monospace;font-size:.82rem;color:var(--tinta3)}
+.constancia .cod b{color:var(--tinta)}
+.pie{margin-top:34px;text-align:center;font-size:.8rem;color:var(--tinta3);font-family:"IBM Plex Mono",monospace}
+
+@media (max-width:620px){
+  body{font-size:16px}
+  .wrap{padding:0 12px 60px}
+  .tarjeta,.zona,.consigna{padding:15px}
+  .form{grid-template-columns:1fr}
+  .rej{gap:3px}
+  .cas{font-size:.7rem;border-radius:8px}
+  .vf button{font-size:1.25rem;padding:20px 8px}
+}
+
+</style>
+</head>
+<body>
+<div class="hud">
+  <div class="hud-in">
+    <div class="marca"><span class="chispa" id="hud-ico">?</span> <span id="hud-nivel">Probabilidades · Sesión 3</span></div>
+    <div class="pastilla" id="hud-avance" hidden>ronda 1 / 20</div>
+    <div class="pastilla oro" id="hud-puntos" hidden>★ <span>0</span></div>
+    <div class="pastilla" id="hud-racha" hidden>racha ×1</div>
+    <div class="reloj" id="hud-reloj" hidden>20:00</div>
+  </div>
+  <div class="cronobar"><i id="crono"></i></div>
+  <div class="banda" id="banda" hidden>⏳ Te quedan <b>3 minutos</b>. Ve cerrando: las rondas que no respondas valen cero.</div>
+</div>
+
+<main class="wrap">
+
+  <!-- ===================== PORTADA ===================== -->
+  <section id="p-inicio">
+    <div class="portada">
+      <div class="eti">Actividad calificada · EST42016</div>
+      <h1>Cazadores de <em>Probabilidad</em></h1>
+      <p class="lema">Cuatro niveles, cuatro formas de jugar y veinte rondas para dominar los eventos, el espacio muestral, el principio de adición y la probabilidad condicional. Tienes <strong>20 minutos</strong> y cada ronda acertada vale <strong>1 punto</strong>: tu nota final es sobre 20.</p>
+    </div>
+
+    <div class="niveles">
+      <div class="nv" style="--c:var(--n1)"><div class="num">NIVEL 1 · 5 puntos</div><h3>Caza-regiones</h3>
+        <p>Pinta en el diagrama de Venn la región que te piden. Unión, intersección, complemento.</p></div>
+      <div class="nv" style="--c:var(--n2)"><div class="num">NIVEL 2 · 5 puntos</div><h3>Rejilla de resultados</h3>
+        <p>Marca en el espacio muestral todos los resultados que cumplen el evento.</p></div>
+      <div class="nv" style="--c:var(--n3)"><div class="num">NIVEL 3 · 5 puntos</div><h3>Tabla de contingencia</h3>
+        <p>Calcula la probabilidad que se pide sobre una tabla de doble entrada.</p></div>
+      <div class="nv" style="--c:var(--n4)"><div class="num">NIVEL 4 · 5 puntos</div><h3>¿Verdadero o falso?</h3>
+        <p>Las propiedades de la probabilidad y los errores que más se repiten.</p></div>
+    </div>
+
+    <div class="tarjeta">
+      <div class="eti">Cómo se califica</div>
+      <ul class="reglas">
+        <li><b>20 rondas, 1 punto cada una.</b> Tu nota es el número de rondas que aciertes, sobre 20.</li>
+        <li><b>20 minutos en total.</b> El reloj corre arriba y te avisa cuando quedan 5 y 3 minutos.</li>
+        <li><b>Si se acaba el tiempo</b>, las rondas que no llegaste a responder valen cero.</li>
+        <li><b>Equivocarse no te elimina:</b> sigues hasta la ronda 20 o hasta que se acabe el tiempo.</li>
+        <li>Aparte de la nota hay un <b>puntaje de juego</b> con rachas y velocidad: eso es solo por diversión.</li>
+        <li>Después de cada respuesta se explica por qué: ese es el verdadero premio.</li>
+      </ul>
+
+      <div class="eti" style="margin-top:20px">Identifícate</div>
+      <div class="form">
+        <div class="campo"><label for="in-ape">Apellidos</label>
+          <input type="text" id="in-ape" placeholder="Quispe Ramos" autocomplete="family-name"></div>
+        <div class="campo"><label for="in-nom">Nombres</label>
+          <input type="text" id="in-nom" placeholder="Ana Lucía" autocomplete="given-name"></div>
+        <div class="campo full"><label for="in-sec">Sección o equipo (opcional)</label>
+          <input type="text" id="in-sec" placeholder="EST42016 - 01"></div>
+        <div class="full">
+          <p class="err" id="err-nom"></p>
+          <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:4px">
+            <button class="btn grande" type="button" id="btn-jugar">¡Empezar!</button>
+            <span class="pista">El reloj arranca al pulsar. Se juega con el mouse o con el dedo, y funciona sin internet.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== ENTRADA DE NIVEL ===================== -->
+  <section id="p-nivel" hidden>
+    <div class="entrenivel">
+      <div class="globo" id="nv-globo">1</div>
+      <div class="eti" id="nv-eti">Nivel 1 de 4</div>
+      <h2 id="nv-titulo"></h2>
+      <p class="lema" id="nv-texto"></p>
+      <div class="aprendido" id="nv-aprendido"></div>
+      <div style="margin-top:24px"><button class="btn grande" type="button" id="btn-vamos">¡Vamos!</button></div>
+    </div>
+  </section>
+
+  <!-- ===================== RONDA ===================== -->
+  <section id="p-ronda" hidden>
+    <div class="cabecera">
+      <span class="chapa" id="rd-chapa">Nivel 1</span>
+      <span class="paso" id="rd-paso">Ronda 1 de 5</span>
+    </div>
+    <div class="consigna">
+      <p class="ctx" id="rd-ctx"></p>
+      <h2 id="rd-titulo"></h2>
+      <div id="rd-obj"></div>
+    </div>
+    <div class="zona" id="rd-zona"></div>
+    <div class="veredicto" id="rd-veredicto"></div>
+    <div class="acciones" id="rd-acciones"></div>
+  </section>
+
+  <!-- ===================== FINAL ===================== -->
+  <section id="p-final" hidden>
+    <div class="final">
+      <div class="eti" id="fn-eti">Resultado de la actividad</div>
+      <h2 class="nombre" id="fn-nombre"></h2>
+      <div class="notaza"><span id="fn-nota">0</span><i>/ 20</i></div>
+      <div class="rango" id="fn-rango"></div>
+      <p class="lema" id="fn-linea" style="margin-top:14px"></p>
+      <div class="minidatos" id="fn-minidatos"></div>
+    </div>
+
+    <h3 class="titsec">Qué tal te fue en cada nivel</h3>
+    <div class="resumen" id="fn-resumen"></div>
+
+    <h3 class="titsec">Medallas</h3>
+    <div class="medallas" id="fn-medallas"></div>
+
+    <h3 class="titsec">Lo que practicaste</h3>
+    <div class="tarjeta" id="fn-temario"></div>
+
+    <div class="constancia" id="fn-constancia"></div>
+
+    <div class="acciones" style="justify-content:center;margin-top:26px">
+      <button class="btn fantasma" type="button" id="btn-otra">Jugar otra vez</button>
+    </div>
+  </section>
+
+  <p class="pie">Los contextos son situaciones reales de 2026; los datos son simulados con fines didácticos.</p>
+</main>
+
+<div id="flotante"></div>
+
+<script>
+/* =========================================================================
+   CAZADORES DE PROBABILIDAD — juego de la Sesión 3 (hasta la diapositiva 39)
+   Espacio muestral · eventos · operaciones entre eventos · definición clásica
+   · propiedades · principio de adición · probabilidad condicional.
+   ========================================================================= */
+(function () {
+  "use strict";
+
+  var $ = function (s, r) { return (r || document).querySelector(s); };
+  var pick = function (a) { return a[Math.floor(Math.random() * a.length)]; };
+  var shuffle = function (a) {
+    a = a.slice();
+    for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; }
+    return a;
+  };
+  var esc = function (s) { return String(s).replace(/[&<>"]/g, function (c) { return ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]; }); };
+  var ri = function (a, b) { return a + Math.floor(Math.random() * (b - a + 1)); };
+  var f3 = function (x) { return x.toFixed(3); };
+  var mismo = function (a, b) {
+    if (a.length !== b.length) return false;
+    var x = a.slice().sort(), y = b.slice().sort();
+    for (var i = 0; i < x.length; i++) if (x[i] !== y[i]) return false;
+    return true;
+  };
+
+  /* =====================================================================
+     NIVEL 1 · contextos y retos del diagrama de Venn
+     ===================================================================== */
+  var VENN = [
+    { ctx: "Encuesta de movilidad 2026 en un distrito de Lima. Se elige al azar a un trabajador.",
+      A: { k: "B", n: "usa bicicleta" }, B: { k: "T", n: "usa transporte público" } },
+    { ctx: "Encuesta de innovación docente, ciclo 2026-2. Se elige al azar a un estudiante.",
+      A: { k: "I", n: "usa inteligencia artificial" }, B: { k: "V", n: "usa videotutoriales" } },
+    { ctx: "Programa municipal de vivienda sostenible. Se elige al azar una vivienda.",
+      A: { k: "S", n: "tiene paneles solares" }, B: { k: "C", n: "capta agua de lluvia" } },
+    { ctx: "Estudio de consumo responsable en supermercados. Se elige al azar a un cliente.",
+      A: { k: "R", n: "lleva bolsa reutilizable" }, B: { k: "E", n: "revisa el etiquetado" } },
+    { ctx: "Red de centros de salud, control preventivo 2026. Se elige al azar a un paciente.",
+      A: { k: "V", n: "tiene la vacunación al día" }, B: { k: "F", n: "hace actividad física" } },
+    { ctx: "Asociación de agroexportadores, campaña 2026. Se elige al azar una parcela.",
+      A: { k: "O", n: "tiene certificación orgánica" }, B: { k: "J", n: "tiene comercio justo" } },
+    { ctx: "Consultora de empleo, encuesta a colaboradores 2026. Se elige a uno al azar.",
+      A: { k: "R", n: "trabaja de forma remota" }, B: { k: "C", n: "recibió capacitación digital" } },
+    { ctx: "Programa de economía circular. Se elige al azar una familia del barrio.",
+      A: { k: "S", n: "segrega sus residuos" }, B: { k: "E", n: "los entrega a un reciclador" } }
+  ];
+  /* regiones: 1 = solo A · 2 = A∩B · 3 = solo B · 4 = fuera de los dos */
+  var RETOS = [
+    { sim: "A", set: [1, 2], pal: function (c) { return "Pinta a los que " + c.A.n + "."; },
+      ex: "El evento A es su círculo COMPLETO: incluye también a los que además cumplen B." },
+    { sim: "B", set: [2, 3], pal: function (c) { return "Pinta a los que " + c.B.n + "."; },
+      ex: "El evento B es su círculo completo, intersección incluida." },
+    { sim: "A ∪ B", set: [1, 2, 3], pal: function (c) { return "Pinta a los que cumplen al menos una de las dos cosas."; },
+      ex: "La unión es «al menos uno de los dos»: los dos círculos enteros." },
+    { sim: "A ∩ B", set: [2], pal: function (c) { return "Pinta a los que " + c.A.n + " y además " + c.B.n + "."; },
+      ex: "La intersección es solo la zona compartida: cumplen las dos condiciones a la vez." },
+    { sim: "Aᶜ", set: [3, 4], pal: function (c) { return "Pinta a los que NO " + c.A.n + "."; },
+      ex: "El complemento de A es todo lo que queda fuera del círculo A, sin salirse de Ω." },
+    { sim: "Bᶜ", set: [1, 4], pal: function (c) { return "Pinta a los que NO " + c.B.n + "."; },
+      ex: "El complemento de B es todo Ω menos el círculo B." },
+    { sim: "A ∩ Bᶜ", set: [1], pal: function (c) { return "Pinta a los que SOLO " + c.A.n + "."; },
+      ex: "«Solo A» es el círculo A al que se le quita la intersección." },
+    { sim: "Aᶜ ∩ B", set: [3], pal: function (c) { return "Pinta a los que SOLO " + c.B.n + "."; },
+      ex: "«Solo B» es el círculo B sin la zona compartida." },
+    { sim: "Aᶜ ∩ Bᶜ", set: [4], pal: function (c) { return "Pinta a los que no cumplen ninguna de las dos."; },
+      ex: "Ninguno de los dos: la parte de Ω que queda fuera de los dos círculos." },
+    { sim: "(A ∪ B)ᶜ", set: [4], pal: function (c) { return "Pinta el complemento de la unión."; },
+      ex: "El complemento de la unión es exactamente «ninguno de los dos»." },
+    { sim: "(A ∩ B)ᶜ", set: [1, 3, 4], pal: function (c) { return "Pinta el complemento de la intersección."; },
+      ex: "Todo Ω menos la zona compartida: quedan tres regiones." },
+    { sim: "(A ∩ Bᶜ) ∪ (Aᶜ ∩ B)", set: [1, 3], pal: function (c) { return "Pinta a los que cumplen exactamente una de las dos."; },
+      ex: "Las dos regiones «solo uno», sin la intersección. No es lo mismo que la unión." }
+  ];
+
+  /* =====================================================================
+     NIVEL 2 · rejilla del espacio muestral
+     ===================================================================== */
+  var REJ = [
+    { ctx: "Una tienda en línea gira una ruleta de 6 premios en cada compra. Un cliente hizo dos compras.",
+      u1: "primer giro", u2: "segundo giro", cosa: "resultados" },
+    { ctx: "En un juego de mesa se lanzan dos dados de seis caras y se anotan los dos números.",
+      u1: "primer dado", u2: "segundo dado", cosa: "resultados" },
+    { ctx: "Dos jurados puntúan un proyecto de arquitectura con una rúbrica del 1 al 6.",
+      u1: "jurado 1", u2: "jurado 2", cosa: "pares de notas" },
+    { ctx: "Una tómbola de 6 bolillas se gira dos veces, devolviendo la bolilla cada vez.",
+      u1: "primera vuelta", u2: "segunda vuelta", cosa: "resultados" }
+  ];
+  var EVREJ = [
+    { t: "la suma de los dos es 7", f: function (i, j) { return i + j === 7; },
+      ex: "Son los pares cuya suma da 7: (1,6) (2,5) (3,4) (4,3) (5,2) (6,1)." },
+    { t: "el primer número es 6", f: function (i) { return i === 6; },
+      ex: "Toda la fila del 6: el segundo número puede ser cualquiera." },
+    { t: "los dos números son iguales", f: function (i, j) { return i === j; },
+      ex: "Es la diagonal del cuadro: los seis pares dobles." },
+    { t: "la suma es al menos 10", f: function (i, j) { return i + j >= 10; },
+      ex: "«Al menos 10» incluye 10, 11 y 12: seis pares en la esquina." },
+    { t: "al menos uno de los dos es 5", f: function (i, j) { return i === 5 || j === 5; },
+      ex: "Toda la fila del 5 más toda la columna del 5, sin contar dos veces el par (5,5): 11 resultados." },
+    { t: "la suma es menor que 5", f: function (i, j) { return i + j < 5; },
+      ex: "Sumas 2, 3 y 4: seis pares en la esquina de arriba." },
+    { t: "el segundo número es mayor que el primero", f: function (i, j) { return j > i; },
+      ex: "Todo lo que queda por encima de la diagonal: 15 resultados." },
+    { t: "los dos números son pares", f: function (i, j) { return i % 2 === 0 && j % 2 === 0; },
+      ex: "Filas 2, 4 y 6 cruzadas con columnas 2, 4 y 6: 3 × 3 = 9 resultados." },
+    { t: "la suma es exactamente 4", f: function (i, j) { return i + j === 4; },
+      ex: "Solo (1,3) (2,2) y (3,1)." },
+    { t: "el primer número es menor que 3", f: function (i) { return i < 3; },
+      ex: "Las filas del 1 y del 2 completas: 12 resultados." }
+  ];
+
+  /* =====================================================================
+     NIVEL 3 · tablas de contingencia
+     ===================================================================== */
+  var TAB = [
+    { ctx: "Pedidos atendidos por un aplicativo de delivery en una semana de 2026.",
+      fv: "Rubro", cv: "Medio de pago", uni: "pedidos",
+      fil: [["Restaurante", "R"], ["Farmacia", "F"], ["Supermercado", "S"]],
+      col: [["Tarjeta", "T"], ["Billetera digital", "Y"]] },
+    { ctx: "Pacientes atendidos en una red de centros de salud durante 2026.",
+      fv: "Motivo", cv: "Modalidad de cita", uni: "pacientes",
+      fil: [["Control preventivo", "P"], ["Enfermedad crónica", "C"], ["Urgencia menor", "U"]],
+      col: [["En línea", "L"], ["Por llegada", "O"]] },
+    { ctx: "Estudiantes de primer ciclo del semestre 2026-2 de una universidad.",
+      fv: "Facultad", cv: "Beneficio", uni: "estudiantes",
+      fil: [["Ingeniería", "I"], ["Negocios", "N"], ["Salud", "S"]],
+      col: [["Con beca", "B"], ["Sin beca", "X"]] },
+    { ctx: "Vehículos atendidos en una red de electrolineras durante un mes de 2026.",
+      fv: "Vehículo", cv: "Cargador", uni: "vehículos",
+      fil: [["Automóvil", "A"], ["Motocicleta", "M"], ["Furgoneta", "F"]],
+      col: [["Rápido", "R"], ["Estándar", "E"]] }
+  ];
+
+  /* =====================================================================
+     NIVEL 4 · verdadero o falso
+     ===================================================================== */
+  var VF = [
+    { t: "Si P(A) = 0.35, entonces P(Aᶜ) = 0.65.", v: true,
+      ex: "Es la propiedad del complemento: P(Aᶜ) = 1 − P(A)." },
+    { t: "Una probabilidad puede valer 1.4 si el evento es casi seguro.", v: false,
+      ex: "Toda probabilidad está entre 0 y 1. Nunca puede pasar de 1." },
+    { t: "La probabilidad del espacio muestral siempre es 1.", v: true,
+      ex: "P(Ω) = 1: es seguro que ocurre alguno de los resultados posibles." },
+    { t: "Si A y B son mutuamente excluyentes, entonces P(A ∩ B) = 0.", v: true,
+      ex: "Mutuamente excluyentes quiere decir que su intersección es vacía." },
+    { t: "P(A ∪ B) = P(A) + P(B) para cualquier par de eventos.", v: false,
+      ex: "Solo vale si son mutuamente excluyentes. Si no, hay que restar P(A ∩ B)." },
+    { t: "P(A / B) y P(B / A) siempre valen lo mismo.", v: false,
+      ex: "Comparten el numerador P(A ∩ B), pero el denominador cambia: por eso suelen ser distintas." },
+    { t: "El evento vacío tiene probabilidad cero.", v: true, ex: "P(∅) = 0: es el evento que nunca ocurre." },
+    { t: "Si el evento A está contenido en el evento B, entonces P(A) ≤ P(B).", v: true,
+      ex: "Si A ⊂ B, todo resultado de A está también en B, así que B no puede tener menos probabilidad." },
+    { t: "Un evento es cualquier subconjunto del espacio muestral.", v: true,
+      ex: "Esa es justamente la definición de evento." },
+    { t: "Al calcular P(A / B), el espacio muestral se reduce a B.", v: true,
+      ex: "Condicionar cambia el denominador: ya no se divide entre 1, sino entre P(B)." },
+    { t: "Si dos eventos pueden ocurrir a la vez, son mutuamente excluyentes.", v: false,
+      ex: "Es al revés: son excluyentes precisamente cuando NO pueden ocurrir a la vez." },
+    { t: "En la definición clásica, el denominador es el número de casos favorables.", v: false,
+      ex: "Los favorables van arriba. El denominador es n(Ω), el total de casos posibles." },
+    { t: "La probabilidad de una unión nunca puede ser mayor que 1.", v: true,
+      ex: "Ninguna probabilidad pasa de 1, y la unión no es la excepción." },
+    { t: "Si P(B) = 0, igual se puede calcular P(A / B).", v: false,
+      ex: "La definición exige P(B) > 0: no se puede dividir entre cero." },
+    { t: "El complemento de la unión es «ninguno de los dos eventos».", v: true,
+      ex: "(A ∪ B)ᶜ = Aᶜ ∩ Bᶜ: la región de Ω que queda fuera de los dos círculos." },
+    { t: "Lanzar un dado y anotar el número obtenido es un experimento aleatorio.", v: true,
+      ex: "No se puede predecir el resultado con exactitud, aunque se conozcan todos los posibles." },
+    { t: "Si un evento tiene probabilidad 0.5, su complemento también vale 0.5.", v: true,
+      ex: "1 − 0.5 = 0.5. Es el único valor que coincide con su complemento." },
+    { t: "La intersección de dos eventos siempre tiene más elementos que cada uno de ellos.", v: false,
+      ex: "Al revés: la intersección está contenida en los dos, así que nunca tiene más." },
+    { t: "Si P(A) = 0.4 y P(B) = 0.5, entonces P(A ∪ B) = 0.9.", v: false,
+      ex: "Solo saldría 0.9 si fueran mutuamente excluyentes. Sin conocer P(A ∩ B) no se puede afirmar nada." },
+    { t: "Al lanzar una moneda dos veces, el espacio muestral tiene 2 resultados.", v: false,
+      ex: "Tiene 4: CC, CS, SC y SS. Se anotan los dos lanzamientos, no solo uno." },
+    { t: "P(A ∩ B) siempre es mayor que P(A ∪ B).", v: false,
+      ex: "Nunca lo es. La intersección está contenida en la unión, así que P(A ∩ B) ≤ P(A ∪ B)." },
+    { t: "Si A y B son mutuamente excluyentes, entonces P(A / B) = P(A).", v: false,
+      ex: "Si son excluyentes y ocurrió B, A ya no puede ocurrir: P(A / B) = 0." }
+  ];
+
+  /* =====================================================================
+     ESTADO
+     ===================================================================== */
+  var COLORES = ["n1", "n2", "n3", "n4"];
+  var RONDAS_POR_NIVEL = 5;
+  var MINUTOS = 20;                 /* duración total de la actividad */
+  var AVISO_1 = 300;                /* primer aviso: quedan 5 minutos */
+  var AVISO_2 = 180;                /* segundo aviso: quedan 3 minutos */
+  var G = null;
+
+  function nuevoJuego() {
+    return {
+      apellidos: "", nombres: "", seccion: "",
+      puntos: 0, racha: 0, rachaMax: 0,
+      nivel: 0, ronda: 0, reg: [[], [], [], []],
+      terminado: false, bloqueado: false,
+      finT: 0, relojT: null, avisado1: false, avisado2: false, t0: 0
+    };
+  }
+  function nombreCompleto() {
+    return (G.apellidos + (G.apellidos && G.nombres ? ", " : "") + G.nombres).trim();
+  }
+  function totalRondas() { return NIVELES.length * RONDAS_POR_NIVEL; }
+
+  /* ---------------- HUD ---------------- */
+  function tema(i) {
+    var c = COLORES[i];
+    document.documentElement.style.setProperty("--acento", "var(--" + c + ")");
+    document.documentElement.style.setProperty("--acentos", "var(--" + c + "s)");
+  }
+  function pintaHud() {
+    $("#hud-puntos").querySelector("span").textContent = G.puntos;
+    $("#hud-racha").textContent = "racha ×" + (1 + Math.min(G.racha, 8) * 0.25).toFixed(2).replace(/\.?0+$/, "");
+    var hechas = G.reg.reduce(function (a, b) { return a + b.length; }, 0);
+    $("#hud-avance").textContent = "ronda " + Math.min(hechas + 1, totalRondas()) + " / " + totalRondas();
+    var L = NIVELES[G.nivel];
+    $("#hud-ico").textContent = L ? L.icono : "?";
+    $("#hud-nivel").textContent = L ? "Nivel " + (G.nivel + 1) + " · " + L.corto : "Probabilidades · Sesión 3";
+  }
+  function verHud(si) {
+    ["#hud-avance", "#hud-puntos", "#hud-racha", "#hud-reloj"].forEach(function (s) { $(s).hidden = !si; });
+  }
+  function pantalla(id) {
+    ["#p-inicio", "#p-nivel", "#p-ronda", "#p-final"].forEach(function (s) { $(s).hidden = s !== id; });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+  function flota(txt, clase) {
+    var d = document.createElement("div");
+    d.className = "puntosflot";
+    d.textContent = txt;
+    if (clase) d.style.color = clase;
+    $("#flotante").appendChild(d);
+    setTimeout(function () { if (d.parentNode) d.parentNode.removeChild(d); }, 1150);
+  }
+
+  /* ---------------- cronómetro de los 20 minutos ----------------
+     Un solo reloj para toda la actividad. Avisa a los 5 y a los 3 minutos
+     restantes, y al llegar a cero cierra la partida con lo respondido. */
+  function restante() { return Math.max(0, Math.ceil((G.finT - Date.now()) / 1000)); }
+  function mmss(s) { return Math.floor(s / 60) + ":" + ("0" + (s % 60)).slice(-2); }
+
+  function arrancaReloj() {
+    G.finT = Date.now() + MINUTOS * 60000;
+    pintaReloj();
+    if (G.relojT) clearInterval(G.relojT);
+    G.relojT = setInterval(pintaReloj, 250);
+  }
+  function paraReloj() { if (G.relojT) { clearInterval(G.relojT); G.relojT = null; } }
+
+  function pintaReloj() {
+    var s = restante(), r = $("#hud-reloj"), b = $("#crono");
+    r.textContent = mmss(s);
+    b.style.width = (100 * s / (MINUTOS * 60)).toFixed(2) + "%";
+    var aviso = s <= AVISO_1 && s > AVISO_2, apuro = s <= AVISO_2;
+    r.classList.toggle("aviso", aviso); r.classList.toggle("apuro", apuro);
+    b.classList.toggle("aviso", aviso); b.classList.toggle("apuro", apuro);
+    if (s <= AVISO_1 && !G.avisado1) {
+      G.avisado1 = true;
+      flota("⏳ 5 minutos", "var(--n3)");
+    }
+    if (s <= AVISO_2 && !G.avisado2) {
+      G.avisado2 = true;
+      $("#banda").hidden = false;
+      flota("⏳ ¡3 minutos!", "var(--mal)");
+    }
+    if (s <= 0 && !G.terminado) { paraReloj(); seAcaboElTiempo(); }
+  }
+
+  function seAcaboElTiempo() {
+    G.bloqueado = true;
+    $("#banda").hidden = true;
+    final(true);
+  }
+
+  /* bonificación de velocidad: solo afecta al puntaje de juego, nunca a la nota */
+  function bonusVelocidad() {
+    var seg = (Date.now() - G.t0) / 1000;
+    return Math.round(50 * Math.max(0, 1 - seg / 45));
+  }
+
+  /* =====================================================================
+     NIVELES
+     ===================================================================== */
+  var NIVELES = [
+    /* ---------------- 1 · VENN ---------------- */
+    {
+      icono: "∪", corto: "Caza-regiones", base: 100, boton: "¡Listo, corrige!",
+      titulo: "Caza-regiones",
+      texto: "Un diagrama de Venn-Euler con cuatro regiones. Te digo un evento y tú pintas la región exacta que le corresponde. Puedes marcar más de una.",
+      aprendido: ["Complemento de un evento (Aᶜ)", "Unión: «al menos uno de los dos»",
+                  "Intersección: «los dos a la vez»", "Las cuatro regiones de un diagrama de Venn-Euler"],
+      nueva: function (usados) {
+        var c = pick(VENN), r;
+        var libres = RETOS.filter(function (x) { return usados.indexOf(x.sim) < 0; });
+        r = pick(libres.length ? libres : RETOS);
+        usados.push(r.sim);
+        return { c: c, r: r, sel: [], ctx: c.ctx,
+                 titulo: r.pal(c), obj: r.sim.replace(/A/g, c.A.k).replace(/B/g, c.B.k) };
+      },
+      pinta: function (rd, z) {
+        var kA = esc(rd.c.A.k), kB = esc(rd.c.B.k);
+        z.innerHTML = '<div class="vennbox">' + vennSVG(kA, kB) + "</div>" +
+          '<p class="pista" style="text-align:center;margin-top:10px">Toca las regiones para pintarlas. Vuelve a tocarlas para quitarlas.</p>';
+        Array.prototype.forEach.call(z.querySelectorAll(".reg"), function (el) {
+          el.addEventListener("click", function () {
+            if (G.bloqueado) return;
+            var n = +el.dataset.r, k = rd.sel.indexOf(n);
+            if (k < 0) rd.sel.push(n); else rd.sel.splice(k, 1);
+            el.classList.toggle("on", k < 0);
+          });
+        });
+      },
+      listo: function (rd) { return rd.sel.length > 0; },
+      corrige: function (rd) {
+        var ok = mismo(rd.sel, rd.r.set);
+        var nom = { 1: "solo " + rd.c.A.k, 2: rd.c.A.k + " ∩ " + rd.c.B.k, 3: "solo " + rd.c.B.k, 4: "ninguno de los dos" };
+        return { ok: ok,
+          correcto: rd.r.set.map(function (n) { return nom[n]; }).join(" + "),
+          explica: rd.r.ex };
+      },
+      revela: function (rd, z) {
+        Array.prototype.forEach.call(z.querySelectorAll(".reg"), function (el) {
+          el.classList.toggle("on", rd.r.set.indexOf(+el.dataset.r) >= 0);
+        });
+      }
+    },
+
+    /* ---------------- 2 · REJILLA ---------------- */
+    {
+      icono: "▦", corto: "Rejilla", base: 120, boton: "¡Listo, revisa!",
+      titulo: "Rejilla de resultados",
+      texto: "Aquí está el espacio muestral completo: los 36 resultados posibles. Marca todos los que cumplen el evento que te pido. Ni uno de más, ni uno de menos.",
+      aprendido: ["Experimento aleatorio y espacio muestral Ω", "Un evento es un subconjunto de Ω",
+                  "Definición clásica: P(A) = n(A) / n(Ω)", "Contar bien los casos favorables"],
+      nueva: function (usados) {
+        var c = pick(REJ);
+        var libres = EVREJ.filter(function (x) { return usados.indexOf(x.t) < 0; });
+        var e = pick(libres.length ? libres : EVREJ);
+        usados.push(e.t);
+        var set = [];
+        for (var i = 1; i <= 6; i++) for (var j = 1; j <= 6; j++) if (e.f(i, j)) set.push(i * 10 + j);
+        return { c: c, e: e, set: set, sel: [], ctx: c.ctx,
+                 titulo: "Marca los resultados en los que " + e.t + ".", obj: "n(Ω) = 36" };
+      },
+      pinta: function (rd, z) {
+        var h = '<div class="rej"><div class="enc"></div>';
+        for (var j = 1; j <= 6; j++) h += '<div class="enc">' + j + "</div>";
+        for (var i = 1; i <= 6; i++) {
+          h += '<div class="enc">' + i + "</div>";
+          for (j = 1; j <= 6; j++)
+            h += '<button class="cas" type="button" data-c="' + (i * 10 + j) + '">' + i + "," + j + "</button>";
+        }
+        h += "</div>";
+        h += '<p class="contador">Marcados: <b id="rj-n">0</b> de 36</p>' +
+             '<p class="pista" style="text-align:center">La fila es el <strong>' + esc(rd.c.u1) +
+             "</strong> y la columna el <strong>" + esc(rd.c.u2) + "</strong>.</p>";
+        z.innerHTML = h;
+        Array.prototype.forEach.call(z.querySelectorAll(".cas"), function (el) {
+          el.addEventListener("click", function () {
+            if (G.bloqueado) return;
+            var n = +el.dataset.c, k = rd.sel.indexOf(n);
+            if (k < 0) rd.sel.push(n); else rd.sel.splice(k, 1);
+            el.classList.toggle("on", k < 0);
+            $("#rj-n").textContent = rd.sel.length;
+          });
+        });
+      },
+      listo: function (rd) { return rd.sel.length > 0; },
+      corrige: function (rd) {
+        var ok = mismo(rd.sel, rd.set), n = rd.set.length;
+        return { ok: ok,
+          correcto: "n(A) = " + n + "  →  P(A) = " + n + "/36 = " + (n / 36).toFixed(4),
+          explica: rd.e.ex + " Con la definición clásica: P(A) = n(A)/n(Ω) = " + n + "/36 = " + (n / 36).toFixed(4) + "." };
+      },
+      revela: function (rd, z) {
+        Array.prototype.forEach.call(z.querySelectorAll(".cas"), function (el) {
+          var n = +el.dataset.c, deb = rd.set.indexOf(n) >= 0, mar = rd.sel.indexOf(n) >= 0;
+          el.classList.remove("on");
+          el.disabled = true;
+          if (deb) el.classList.add("bien");
+          else if (mar) el.classList.add("falla");
+        });
+      }
+    },
+
+    /* ---------------- 3 · TABLA ---------------- */
+    {
+      icono: "▤", corto: "Tabla de contingencia", base: 150, boton: null,
+      titulo: "Tabla de contingencia",
+      texto: "Una tabla de doble entrada y una pregunta. Cuatro respuestas, una sola correcta. Aquí se juega con la definición clásica, el principio de adición y la probabilidad condicional.",
+      aprendido: ["P(A) = n(A) / n(Ω) sobre una tabla", "Intersección: una sola celda",
+                  "Principio de adición: P(A∪B) = P(A) + P(B) − P(A∩B)", "Condicional: el denominador se reduce"],
+      nueva: function (usados) { return tablaRonda(usados); },
+      pinta: function (rd, z) {
+        z.innerHTML = '<div class="tabwrap">' + tablaHTML(rd.T, {}) + "</div>" +
+          '<div class="ops" id="rd-ops">' + rd.ops.map(function (o, i) {
+            return '<button class="op" type="button" data-o="' + i + '">' + esc(o.t) + "</button>";
+          }).join("") + "</div>";
+        Array.prototype.forEach.call(z.querySelectorAll(".op"), function (el) {
+          el.addEventListener("click", function () {
+            if (G.bloqueado) return;
+            rd.eleg = +el.dataset.o;
+            resolver(rd.ops[rd.eleg].ok);
+          });
+        });
+      },
+      listo: function () { return false; },
+      corrige: function (rd) {
+        var c = rd.ops.filter(function (o) { return o.ok; })[0];
+        return { ok: rd.eleg != null && rd.ops[rd.eleg].ok, correcto: c.t, explica: rd.ex };
+      },
+      revela: function (rd, z) {
+        Array.prototype.forEach.call(z.querySelectorAll(".op"), function (el) {
+          var i = +el.dataset.o;
+          el.disabled = true;
+          if (rd.ops[i].ok) el.classList.add("bien");
+          else if (rd.eleg === i) el.classList.add("falla");
+        });
+        var t = z.querySelector(".tabwrap");
+        if (t) t.innerHTML = tablaHTML(rd.T, rd.marcas);
+      }
+    },
+
+    /* ---------------- 4 · VERDADERO O FALSO ---------------- */
+    {
+      icono: "!", corto: "¿Verdadero o falso?", base: 130, boton: null,
+      titulo: "¿Verdadero o falso?",
+      texto: "Cinco afirmaciones sobre las propiedades de la probabilidad y los errores que más se repiten. Léelas con calma: casi todas esconden una trampa conocida.",
+      aprendido: ["0 ≤ P(A) ≤ 1, P(Ω) = 1, P(∅) = 0", "P(Aᶜ) = 1 − P(A)",
+                  "Cuándo se puede sumar sin restar", "Qué significa condicionar"],
+      nueva: function (usados) {
+        var libres = VF.filter(function (x) { return usados.indexOf(x.t) < 0; });
+        var f = pick(libres.length ? libres : VF);
+        usados.push(f.t);
+        return { f: f, ctx: "Propiedades de la probabilidad", titulo: "¿Es verdadera esta afirmación?", obj: "" };
+      },
+      pinta: function (rd, z) {
+        z.innerHTML = '<p class="frase">' + esc(rd.f.t) + "</p>" +
+          '<div class="vf"><button class="si" type="button" data-v="1">Verdadero</button>' +
+          '<button class="no" type="button" data-v="0">Falso</button></div>';
+        Array.prototype.forEach.call(z.querySelectorAll(".vf button"), function (el) {
+          el.addEventListener("click", function () {
+            if (G.bloqueado) return;
+            rd.eleg = el.dataset.v === "1";
+            resolver(rd.eleg === rd.f.v);
+          });
+        });
+      },
+      listo: function () { return false; },
+      corrige: function (rd) {
+        return { ok: rd.eleg === rd.f.v, correcto: rd.f.v ? "Verdadero" : "Falso", explica: rd.f.ex };
+      },
+      revela: function (rd, z) {
+        Array.prototype.forEach.call(z.querySelectorAll(".vf button"), function (el) {
+          var v = el.dataset.v === "1";
+          el.disabled = true;
+          if (v === rd.f.v) el.classList.add("bien"); else el.style.opacity = ".35";
+        });
+      }
+    }
+  ];
+
+  /* =====================================================================
+     DIAGRAMA DE VENN (SVG con regiones clicables)
+     ===================================================================== */
+  function vennSVG(kA, kB) {
+    return '<svg viewBox="0 0 520 300" role="group" aria-label="Diagrama de Venn con cuatro regiones">' +
+      "<defs>" +
+      '<clipPath id="clipB"><circle cx="320" cy="158" r="108"/></clipPath>' +
+      '<mask id="mSoloA"><rect width="520" height="300" fill="#fff"/><circle cx="320" cy="158" r="108" fill="#000"/></mask>' +
+      '<mask id="mSoloB"><rect width="520" height="300" fill="#fff"/><circle cx="200" cy="158" r="108" fill="#000"/></mask>' +
+      '<mask id="mFuera"><rect x="8" y="8" width="504" height="284" rx="16" fill="#fff"/>' +
+      '<circle cx="200" cy="158" r="108" fill="#000"/><circle cx="320" cy="158" r="108" fill="#000"/></mask>' +
+      "</defs>" +
+      '<rect class="reg" data-r="4" x="8" y="8" width="504" height="284" rx="16" mask="url(#mFuera)"></rect>' +
+      '<circle class="reg" data-r="1" cx="200" cy="158" r="108" mask="url(#mSoloA)"></circle>' +
+      '<circle class="reg" data-r="3" cx="320" cy="158" r="108" mask="url(#mSoloB)"></circle>' +
+      '<g clip-path="url(#clipB)"><circle class="reg" data-r="2" cx="200" cy="158" r="108"></circle></g>' +
+      '<rect class="vn-borde" x="8" y="8" width="504" height="284" rx="16"></rect>' +
+      '<circle class="vn-circ" cx="200" cy="158" r="108"></circle>' +
+      '<circle class="vn-circ" cx="320" cy="158" r="108"></circle>' +
+      '<text class="vn-om" x="22" y="30">Ω</text>' +
+      '<text class="vn-tex" x="118" y="48">' + kA + "</text>" +
+      '<text class="vn-tex" x="392" y="48">' + kB + "</text>" +
+      '<text class="vn-min" x="148" y="163">solo ' + kA + "</text>" +
+      '<text class="vn-min" x="260" y="163">' + kA + " ∩ " + kB + "</text>" +
+      '<text class="vn-min" x="372" y="163">solo ' + kB + "</text>" +
+      '<text class="vn-min" x="452" y="278">ninguno</text>' +
+      "</svg>";
+  }
+
+  /* =====================================================================
+     TABLA DE CONTINGENCIA
+     ===================================================================== */
+  function tablaHTML(T, mk) {
+    mk = mk || {};
+    var h = '<table class="tab"><thead><tr><th class="esq">' + esc(T.sc.fv) + " \\ " + esc(T.sc.cv) + "</th>";
+    for (var j = 0; j < T.C; j++) h += "<th>" + esc(T.sc.col[j][0]) + " (" + T.sc.col[j][1] + ")</th>";
+    h += '<th class="tot">Total</th></tr></thead><tbody>';
+    for (var i = 0; i < T.R; i++) {
+      h += "<tr><th>" + esc(T.sc.fil[i][0]) + " (" + T.sc.fil[i][1] + ")</th>";
+      for (j = 0; j < T.C; j++) {
+        var c = mk[i + "," + j] ? ' class="' + mk[i + "," + j] + '"' : "";
+        h += "<td" + c + ">" + T.M[i][j] + "</td>";
+      }
+      h += '<td class="tot' + (mk["f" + i] ? " " + mk["f" + i] : "") + '">' + T.tf[i] + "</td></tr>";
+    }
+    h += '<tr><th class="tot">Total</th>';
+    for (j = 0; j < T.C; j++) h += '<td class="tot' + (mk["c" + j] ? " " + mk["c" + j] : "") + '">' + T.tc[j] + "</td>";
+    return h + '<td class="tot">' + T.N + "</td></tr></tbody></table>";
+  }
+
+  function nuevaTabla() {
+    for (var att = 0; att < 500; att++) {
+      var sc = pick(TAB), R = sc.fil.length, C = sc.col.length, i, j;
+      var M = [], tf = [], tc = [], N = 0;
+      for (i = 0; i < R; i++) {
+        M.push([]); tf.push(0);
+        for (j = 0; j < C; j++) { var v = ri(8, 40); M[i].push(v); tf[i] += v; N += v; }
+      }
+      for (j = 0; j < C; j++) { tc.push(0); for (i = 0; i < R; i++) tc[j] += M[i][j]; }
+      if (N < 90 || N > 260) continue;
+      return { sc: sc, R: R, C: C, M: M, tf: tf, tc: tc, N: N };
+    }
+    return null;
+  }
+
+  function tablaRonda(usados) {
+    for (var att = 0; att < 400; att++) {
+      var T = nuevaTabla();
+      if (!T) continue;
+      var i = ri(0, T.R - 1), j = ri(0, T.C - 1);
+      var F = T.sc.fil[i], L = T.sc.col[j];
+      var tipos = ["marg", "inter", "union", "compl", "cond", "condinv"];
+      var libres = tipos.filter(function (t) { return usados.indexOf(t) < 0; });
+      var tipo = pick(libres.length ? libres : tipos);
+
+      var pF = T.tf[i] / T.N, pC = T.tc[j] / T.N, pI = T.M[i][j] / T.N;
+      var pU = (T.tf[i] + T.tc[j] - T.M[i][j]) / T.N;
+      var pCc = 1 - pC, pCd = T.M[i][j] / T.tc[j], pCi = T.M[i][j] / T.tf[i];
+      var preg, val, mal, marcas = {}, ex, obj;
+
+      if (tipo === "marg") {
+        preg = "¿Cuál es la probabilidad de que sea de «" + F[0] + "»?";
+        obj = "P(" + F[1] + ")"; val = pF;
+        mal = [pC, pI, pCd];
+        for (var k = 0; k < T.C; k++) marcas[i + "," + k] = "mk";
+        marcas["f" + i] = "mk";
+        ex = "P(" + F[1] + ") = n(" + F[1] + ")/n(Ω) = " + T.tf[i] + "/" + T.N + " = " + f3(pF) +
+             ". Es el total de la fila entre el total general.";
+      } else if (tipo === "inter") {
+        preg = "¿Cuál es la probabilidad de que sea de «" + F[0] + "» Y además «" + L[0] + "»?";
+        obj = "P(" + F[1] + " ∩ " + L[1] + ")"; val = pI;
+        mal = [pF, pC, pCd];
+        marcas[i + "," + j] = "mk";
+        ex = "La intersección es UNA sola celda: " + T.M[i][j] + "/" + T.N + " = " + f3(pI) + ".";
+      } else if (tipo === "union") {
+        preg = "¿Cuál es la probabilidad de que sea de «" + F[0] + "» O «" + L[0] + "»?";
+        obj = "P(" + F[1] + " ∪ " + L[1] + ")"; val = pU;
+        mal = [pF + pC, pF, pI];
+        for (k = 0; k < T.C; k++) marcas[i + "," + k] = "mk2";
+        for (k = 0; k < T.R; k++) marcas[k + "," + j] = "mk2";
+        marcas[i + "," + j] = "mk";
+        ex = "Principio de adición: (" + T.tf[i] + " + " + T.tc[j] + " − " + T.M[i][j] + ")/" + T.N + " = " + f3(pU) +
+             ". Si no restas la celda común, la cuentas dos veces.";
+      } else if (tipo === "compl") {
+        preg = "¿Cuál es la probabilidad de que NO sea de «" + L[0] + "»?";
+        obj = "P(" + L[1] + "ᶜ)"; val = pCc;
+        mal = [pC, pF, 1 - pF];
+        for (k = 0; k < T.R; k++) for (var m = 0; m < T.C; m++) if (m !== j) marcas[k + "," + m] = "mk";
+        ex = "P(" + L[1] + "ᶜ) = 1 − " + T.tc[j] + "/" + T.N + " = " + f3(pCc) +
+             ". También sale contando: " + (T.N - T.tc[j]) + "/" + T.N + ".";
+      } else if (tipo === "cond") {
+        preg = "Si ya se sabe que es de «" + L[0] + "», ¿cuál es la probabilidad de que sea de «" + F[0] + "»?";
+        obj = "P(" + F[1] + " / " + L[1] + ")"; val = pCd;
+        mal = [pI, pCi, pF];
+        for (k = 0; k < T.R; k++) marcas[k + "," + j] = "mk2";
+        marcas[i + "," + j] = "mk"; marcas["c" + j] = "mk";
+        ex = "Al condicionar, el espacio muestral se reduce a la columna: " + T.M[i][j] + "/" + T.tc[j] + " = " + f3(pCd) +
+             ". El total general ya no interviene.";
+      } else {
+        preg = "Si ya se sabe que es de «" + F[0] + "», ¿cuál es la probabilidad de que sea de «" + L[0] + "»?";
+        obj = "P(" + L[1] + " / " + F[1] + ")"; val = pCi;
+        mal = [pI, pCd, pC];
+        for (k = 0; k < T.C; k++) marcas[i + "," + k] = "mk2";
+        marcas[i + "," + j] = "mk"; marcas["f" + i] = "mk";
+        ex = "Ahora el espacio muestral se reduce a la fila: " + T.M[i][j] + "/" + T.tf[i] + " = " + f3(pCi) +
+             ". Ojo: no es lo mismo que P(" + F[1] + " / " + L[1] + ").";
+      }
+
+      /* las cuatro opciones deben ser distinguibles */
+      var vals = [val], ok = true;
+      mal.forEach(function (x) {
+        if (x > 1) x = Math.min(0.99, x);
+        var rep = vals.some(function (y) { return Math.abs(y - x) < 0.02; });
+        if (!rep) vals.push(x);
+      });
+      while (vals.length < 4) {
+        var extra = Math.max(0.02, Math.min(0.98, val + (Math.random() < 0.5 ? -1 : 1) * (0.07 + Math.random() * 0.25)));
+        if (!vals.some(function (y) { return Math.abs(y - extra) < 0.02; })) vals.push(extra);
+        else if (vals.length > 12) break;
+      }
+      if (vals.length !== 4) continue;
+      if (val < 0.03 || val > 0.97) continue;
+      usados.push(tipo);
+      var ops = shuffle(vals.map(function (x, n) { return { t: f3(x), ok: n === 0 }; }));
+      return { T: T, ops: ops, marcas: marcas, ex: ex, eleg: null,
+               ctx: T.sc.ctx + "  ·  n(Ω) = " + T.N + " " + T.sc.uni,
+               titulo: preg, obj: obj };
+    }
+    return null;
+  }
+
+  /* =====================================================================
+     FLUJO DE JUEGO
+     ===================================================================== */
+  $("#btn-jugar").addEventListener("click", function () {
+    var ape = $("#in-ape").value.trim(), nom = $("#in-nom").value.trim();
+    var err = $("#err-nom");
+    if (!ape || !nom) {
+      err.textContent = "Escribe tus apellidos y tus nombres: la nota y la constancia salen a tu nombre.";
+      $("#in-ape").classList.toggle("bad", !ape);
+      $("#in-nom").classList.toggle("bad", !nom);
+      (ape ? $("#in-nom") : $("#in-ape")).focus();
+      return;
+    }
+    err.textContent = "";
+    $("#in-ape").classList.remove("bad"); $("#in-nom").classList.remove("bad");
+    G = nuevoJuego();
+    G.apellidos = ape; G.nombres = nom;
+    G.seccion = $("#in-sec").value.trim();
+    verHud(true);
+    arrancaReloj();
+    entraNivel(0);
+  });
+  ["#in-ape", "#in-nom"].forEach(function (s) {
+    $(s).addEventListener("input", function () { $(s).classList.remove("bad"); $("#err-nom").textContent = ""; });
+    $(s).addEventListener("keydown", function (ev) { if (ev.key === "Enter") $("#btn-jugar").click(); });
+  });
+  $("#btn-otra").addEventListener("click", function () { location.reload(); });
+  $("#btn-vamos").addEventListener("click", function () { nuevaRonda(); });
+
+  function entraNivel(i) {
+    G.nivel = i; G.ronda = 0; G.usados = [];
+    tema(i); pintaHud();
+    var L = NIVELES[i];
+    $("#nv-globo").textContent = String(i + 1);
+    $("#nv-eti").textContent = "Nivel " + (i + 1) + " de 4  ·  " + RONDAS_POR_NIVEL +
+      " rondas  ·  " + RONDAS_POR_NIVEL + " puntos de la nota  ·  quedan " + mmss(restante());
+    $("#nv-titulo").textContent = L.titulo;
+    $("#nv-texto").textContent = L.texto;
+    $("#nv-aprendido").innerHTML = "<b>Lo que vas a practicar</b><ul>" +
+      L.aprendido.map(function (x) { return "<li>" + esc(x) + "</li>"; }).join("") + "</ul>";
+    pantalla("#p-nivel");
+  }
+
+  function nuevaRonda() {
+    if (G.terminado) return;
+    var L = NIVELES[G.nivel];
+    var rd = L.nueva(G.usados);
+    if (!rd) { siguiente(); return; }
+    G.rd = rd; G.bloqueado = false; G.t0 = Date.now();
+    pintaHud();
+    $("#rd-chapa").textContent = "Nivel " + (G.nivel + 1) + " · " + L.corto;
+    $("#rd-paso").textContent = "Ronda " + (G.ronda + 1) + " de " + RONDAS_POR_NIVEL + " · vale 1 punto";
+    $("#rd-ctx").textContent = rd.ctx;
+    $("#rd-titulo").textContent = rd.titulo;
+    $("#rd-obj").innerHTML = rd.obj ? '<span class="obj">' + esc(rd.obj) + "</span>" : "";
+    var v = $("#rd-veredicto"); v.className = "veredicto"; v.innerHTML = "";
+    var z = $("#rd-zona");
+    L.pinta(rd, z);
+    var acc = $("#rd-acciones");
+    if (L.boton) {
+      acc.innerHTML = '<button class="btn" type="button" id="btn-enviar">' + esc(L.boton) + "</button>" +
+        '<span class="pista">Marca todo lo que corresponda y pulsa el botón.</span>';
+      $("#btn-enviar").addEventListener("click", function () {
+        if (G.bloqueado) return;
+        if (!L.listo(G.rd)) { flota("¡marca algo!", "var(--mal)"); return; }
+        resolver();
+      });
+    } else {
+      acc.innerHTML = '<span class="pista">Elige una respuesta: se corrige al instante.</span>';
+    }
+    pantalla("#p-ronda");
+  }
+
+  function resolver() {
+    if (G.bloqueado || G.terminado) return;
+    G.bloqueado = true;
+    var L = NIVELES[G.nivel], rd = G.rd;
+    var res = L.corrige(rd);
+    var ok = res.ok;
+
+    L.revela(rd, $("#rd-zona"));
+
+    var gana = 0;
+    if (ok) {
+      G.racha++; if (G.racha > G.rachaMax) G.rachaMax = G.racha;
+      var mult = 1 + Math.min(G.racha - 1, 8) * 0.25;
+      gana = Math.round(L.base * mult) + bonusVelocidad();
+      G.puntos += gana;
+      flota("+1 punto", "var(--ok)");
+    } else {
+      G.racha = 0;
+      flota("0 puntos", "var(--mal)");
+    }
+    G.reg[G.nivel].push(ok);
+    pintaHud();
+
+    var v = $("#rd-veredicto");
+    v.className = "veredicto ver " + (ok ? "si" : "no");
+    v.innerHTML = "<b>" + (ok ? "¡Correcto! Sumas 1 punto a tu nota" : "No era esa: esta ronda vale 0") + "</b>" +
+      "<p>" + (ok ? "" : "La respuesta correcta era <strong>" + esc(res.correcto) + "</strong>. ") + esc(res.explica) + "</p>" +
+      (ok ? '<p class="juego">+' + gana + " puntos de juego" + (G.racha > 1 ? " · racha de " + G.racha : "") + "</p>" : "");
+
+    var acc = $("#rd-acciones");
+    var ultima = G.nivel === NIVELES.length - 1 && G.ronda + 1 >= RONDAS_POR_NIVEL;
+    acc.innerHTML = '<button class="btn" type="button" id="btn-seguir">' +
+      (ultima ? "Ver mi nota →" : "Siguiente →") + "</button>" +
+      '<span class="pista">Quedan ' + mmss(restante()) + " de los 20 minutos.</span>";
+    $("#btn-seguir").addEventListener("click", siguiente);
+    $("#btn-seguir").focus({ preventScroll: true });
+  }
+
+  function siguiente() {
+    if (G.terminado) return;
+    G.ronda++;
+    if (G.ronda >= RONDAS_POR_NIVEL) {
+      if (G.nivel + 1 >= NIVELES.length) { final(); return; }
+      entraNivel(G.nivel + 1);
+      return;
+    }
+    nuevaRonda();
+  }
+
+  /* =====================================================================
+     FINAL
+     ===================================================================== */
+  /* Código de verificación JP3-NN-MMSS-CCC: nota, tiempo empleado y una suma de
+     control del nombre. Dos alumnos con el mismo resultado no comparten código
+     porque el nombre entra en la suma, y la nota se lee directamente del código. */
+  function codigo(semilla, nota, segsUsados) {
+    var s = String(semilla).toUpperCase(), h = 7;
+    for (var i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) % 46656;
+    var c = ("00" + h.toString(36).toUpperCase()).slice(-3);
+    var t = ("0" + Math.floor(segsUsados / 60)).slice(-2) + ("0" + (segsUsados % 60)).slice(-2);
+    return "JP3-" + ("0" + nota).slice(-2) + "-" + t + "-" + c;
+  }
+
+  function final(porTiempo) {
+    G.terminado = true;
+    paraReloj();
+    verHud(false);
+    $("#banda").hidden = true;
+    $("#crono").style.width = "0%";
+    $("#crono").className = "";
+    $("#hud-ico").textContent = "★";
+    $("#hud-nivel").textContent = "Probabilidades · Sesión 3";
+
+    var TOT = totalRondas();
+    var aciertos = 0, resueltas = 0;
+    G.reg.forEach(function (a) { a.forEach(function (x) { resueltas++; if (x) aciertos++; }); });
+    var nota = aciertos;                       /* 20 rondas × 1 punto = nota sobre 20 */
+    var sinResponder = TOT - resueltas;
+    var usados = MINUTOS * 60 - restante();
+
+    $("#fn-eti").textContent = porTiempo ? "Se acabó el tiempo" : "Resultado de la actividad";
+    $("#fn-nombre").textContent = nombreCompleto();
+    $("#fn-nota").textContent = nota;
+    $("#fn-nota").className = nota >= 14 ? "bien" : nota >= 11 ? "medio" : "bajo";
+
+    var rango = nota >= 18 ? "Maestro de la probabilidad"
+      : nota >= 15 ? "Cazador experto"
+      : nota >= 11 ? "Cazador en forma"
+      : nota >= 7 ? "Aprendiz avanzado" : "Aprendiz";
+    $("#fn-rango").textContent = rango;
+
+    $("#fn-linea").textContent =
+      (porTiempo ? "Se acabaron los 20 minutos. " : "") +
+      "Acertaste " + aciertos + " de las " + TOT + " rondas" +
+      (sinResponder ? ", y " + sinResponder + (sinResponder === 1 ? " quedó" : " quedaron") + " sin responder" : "") +
+      ". Tu mejor racha fue de " + G.rachaMax + (G.rachaMax === 1 ? " acierto seguido." : " aciertos seguidos.");
+
+    $("#fn-minidatos").innerHTML =
+      "<div><b>" + aciertos + " / " + TOT + "</b><span>rondas acertadas</span></div>" +
+      "<div><b>" + mmss(usados) + "</b><span>tiempo empleado</span></div>" +
+      "<div><b>" + G.puntos + "</b><span>puntos de juego</span></div>" +
+      "<div><b>×" + (1 + Math.min(G.rachaMax, 8) * 0.25).toFixed(2).replace(/\.?0+$/, "") +
+      "</b><span>mejor multiplicador</span></div>";
+
+    var perf = function (i) { return G.reg[i].length === RONDAS_POR_NIVEL && G.reg[i].every(function (x) { return x; }); };
+    var meds = [
+      { g: perf(0), ic: "◎", t: "Ojo de halcón", d: "Nivel 1 sin fallar" },
+      { g: perf(1), ic: "▦", t: "Rastreador", d: "Nivel 2 sin fallar" },
+      { g: perf(2), ic: "▤", t: "Calculadora humana", d: "Nivel 3 sin fallar" },
+      { g: perf(3), ic: "!", t: "Sin miedo", d: "Nivel 4 sin fallar" },
+      { g: G.rachaMax >= 6, ic: "≡", t: "Racha de fuego", d: "6 aciertos seguidos" },
+      { g: resueltas === TOT && usados <= 15 * 60, ic: "⏱", t: "Contra el reloj", d: "Las 20 rondas en 15 min o menos" }
+    ];
+    $("#fn-medallas").innerHTML = meds.map(function (m) {
+      return '<div class="medalla' + (m.g ? " gana" : "") + '"><div class="ico">' + m.ic + "</div><b>" +
+        esc(m.t) + "</b><span>" + esc(m.d) + "</span></div>";
+    }).join("");
+
+    $("#fn-resumen").innerHTML = NIVELES.map(function (L, i) {
+      var a = G.reg[i].filter(function (x) { return x; }).length, n = G.reg[i].length;
+      var col = "var(--" + COLORES[i] + ")";
+      return '<div class="rline"><span class="pt" style="background:' + col + '">' + (i + 1) + "</span>" +
+        '<span class="tx"><b>' + esc(L.titulo) + "</b><span>" + esc(L.aprendido[0]) + "</span></span>" +
+        '<span class="mk" style="color:' + col + '">' + a + " / " + (n || RONDAS_POR_NIVEL) +
+        (n === 0 ? " · no jugado" : "") + "</span></div>";
+    }).join("");
+
+    $("#fn-temario").innerHTML = '<div class="eti">Sesión 3 · Probabilidades, hasta la diapositiva 39</div>' +
+      '<ul style="margin:10px 0 0;padding-left:20px;color:var(--tinta2);font-size:.95rem">' +
+      "<li>Experimento aleatorio, espacio muestral Ω y evento como subconjunto de Ω.</li>" +
+      "<li>Operaciones entre eventos: complemento Aᶜ, unión A ∪ B, intersección A ∩ B.</li>" +
+      "<li>Eventos mutuamente excluyentes: A ∩ B = ∅.</li>" +
+      "<li>Definición clásica de probabilidad: P(A) = n(A) / n(Ω).</li>" +
+      "<li>Propiedades: 0 ≤ P(A) ≤ 1, P(Ω) = 1, P(∅) = 0, P(Aᶜ) = 1 − P(A).</li>" +
+      "<li>Principio de adición: P(A ∪ B) = P(A) + P(B) − P(A ∩ B).</li>" +
+      "<li>Probabilidad condicional: P(A / B) = P(A ∩ B) / P(B).</li></ul>";
+
+    /* constancia con la nota, a nombre del alumno */
+    var f = new Date();
+    var dd = ("0" + f.getDate()).slice(-2), mm = ("0" + (f.getMonth() + 1)).slice(-2);
+    var cod = codigo(nombreCompleto() + "|" + G.seccion + "|" + nota + "|" + G.puntos + "|" + dd + mm,
+                     nota, usados);
+    $("#fn-constancia").innerHTML =
+      '<div class="eti">Constancia de participación</div>' +
+      "<h3>" + esc(nombreCompleto()) + "</h3>" +
+      "<p>participó en la actividad <strong>Cazadores de Probabilidad</strong> " +
+      "(Sesión 3 · Probabilidades, hasta la diapositiva 39) del curso EST42016 — " +
+      "Estadística Descriptiva e Inferencia Estadística, ciclo 2026-2" +
+      (G.seccion ? ", sección <strong>" + esc(G.seccion) + "</strong>" : "") +
+      ", resuelta en " + mmss(usados) + " de los 20 minutos.</p>" +
+      '<div class="notafinal"><span>Nota obtenida</span><b>' + nota + " / " + TOT + "</b></div>" +
+      '<div class="datos">' +
+      "<div><b>" + aciertos + " / " + TOT + "</b><span>rondas acertadas</span></div>" +
+      "<div><b>" + esc(rango) + "</b><span>rango alcanzado</span></div>" +
+      "<div><b>" + dd + "/" + mm + "/" + f.getFullYear() + "</b><span>fecha</span></div>" +
+      "</div>" +
+      '<p class="cod">Código de verificación: <b>' + cod + "</b></p>" +
+      '<p class="cod">Muestra esta pantalla o copia el código en el formulario del aula virtual.</p>';
+    pantalla("#p-final");
+  }
+
+  /* atajos de teclado en verdadero/falso */
+  document.addEventListener("keydown", function (ev) {
+    if ($("#p-ronda").hidden || G == null || G.bloqueado || G.terminado) return;
+    if (NIVELES[G.nivel].icono !== "!") return;
+    if (ev.key === "v" || ev.key === "V" || ev.key === "ArrowLeft") { var b = $("#rd-zona .si"); if (b) b.click(); }
+    if (ev.key === "f" || ev.key === "F" || ev.key === "ArrowRight") { var c = $("#rd-zona .no"); if (c) c.click(); }
+  });
+
+  window.__JUEGO__ = {
+    niveles: NIVELES, venn: VENN, retos: RETOS, evrej: EVREJ, vf: VF, tab: TAB,
+    tablaRonda: tablaRonda, nuevaTabla: nuevaTabla, codigo: codigo,
+    g: function () { return G; }, RONDAS: RONDAS_POR_NIVEL, MINUTOS: MINUTOS,
+    restante: restante, mmss: mmss, total: totalRondas,
+    /* solo para pruebas automáticas: adelanta el reloj */
+    _adelanta: function (seg) { if (G) { G.finT -= seg * 1000; pintaReloj(); } }
+  };
+})();
+
+</script>
+</body>
+</html>
